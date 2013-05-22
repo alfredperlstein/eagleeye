@@ -249,7 +249,7 @@ join_filter()
 # format
 sysctl_filter()
 {
-    egrep '[a-z.0]*: [0-9][0-9]*$' |join_filter
+    egrep '^[a-z.0]+: [0-9]+$' |join_filter
 
 }
 
