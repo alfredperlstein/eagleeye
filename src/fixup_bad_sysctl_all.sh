@@ -7,8 +7,8 @@
 # sed to strip it out.
 
 if [ "x$1" != "x" ] ; then
-    sed -i .bak 's/|[^a-z][^|]*/|/g' $*
-else
-    sed 's/|[^a-z][^|]*/|/g' 
+    INPLACE="-i .bak"
 fi
+
+sed $INPLACE -e 's/|[^a-z][^|]*//g' -e 's/|[^|:]*: [^0-9][^|]*//g' $*
 
