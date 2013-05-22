@@ -6,4 +6,9 @@
 # such as "<118> syncpeer: 0.0.0.0 maxupd: 128", use this
 # sed to strip it out.
 
-sed 's/|[^a-z][^|]*/|/g'
+if [ "x$1" != "x" ] ; then
+    sed -i .bak 's/|[^a-z][^|]*/|/g' $*
+else
+    sed 's/|[^a-z][^|]*/|/g' 
+fi
+
