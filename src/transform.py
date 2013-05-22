@@ -137,7 +137,7 @@ def parse_line(inline):  # Parse line for data
        try:
 	   for element in ListOfStrings:
 	     if element != '\n':  #Ignore end of line in list
-	       print "element being parsed: %s" % element
+	       #print "element being parsed: %s" % element
 	       x = element.split(':')
 	       if x[0] not in blacklist:
 		 data[x[0]] = human2bytes(x[1])
@@ -240,18 +240,32 @@ def main():
      unique = 0
      if PurgeDups:
        # Records = list of dictionarys, like this: [{'Date': <timestamp> ,'sysctl-nme':value},{..},]
-       print "Purging SYSCTL's with duplicate values"
+       print "Purging SYSCTL's with unchanging values"
        for key in keys:
          if key != "Date": # Ignore date
-           first_record_value = records[0][key] #Get first element of list with dict key
-           for i in range(len(records)):
+           i = 0
+           while not key in records[i]:
+             i = i + 1
+	
+	   try:
+	       first_record_value = records[i][key] #Get first element of list with dict key
+	   except:
+	       print "error accessing key: %s" % key
+	       raise
+           end = len(records)
+           while i < end:
+             if not key in records[i]:
+               i = i + 1
+               continue
+                   
              if first_record_value != records[i][key]:
                unique = unique +1
                newkeys.append(key)
                break
+             i = i + 1
+       print "Number of sysctls with variable data: " + str(len(newkeys))
+       keys=newkeys
 
-     print "Number of sysctls with variable data: " + str(len(newkeys))
-     keys=newkeys
      ########################################
      # Write out,one swoop
      print "Writing all data to: " + filename+'.csv',
