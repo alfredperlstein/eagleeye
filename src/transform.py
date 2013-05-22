@@ -128,16 +128,30 @@ def gen_R_graph(sysctl):
 
 def parse_line(inline):  # Parse line for data
    #inline=inline.strip('\n')
-   ListOfStrings = inline.split('|') # Parse data
-   datestring = ListOfStrings.pop(0) # Extract date field.
-   data=dict()
-   data['Date']=datestring  # Add date key to dictionary
-   for element in ListOfStrings:
-     if element != '\n':  #Ignore end of line in list
-       x = element.split(':')
-       if x[0] not in blacklist:
-         data[x[0]] = human2bytes(x[1])
-   #print "parsed line: " + str(data)
+   warned = False
+   try:
+       ListOfStrings = inline.split('|') # Parse data
+       datestring = ListOfStrings.pop(0) # Extract date field.
+       data=dict()
+       data['Date']=datestring  # Add date key to dictionary
+       try:
+	   for element in ListOfStrings:
+	     if element != '\n':  #Ignore end of line in list
+	       print "element being parsed: %s" % element
+	       x = element.split(':')
+	       if x[0] not in blacklist:
+		 data[x[0]] = human2bytes(x[1])
+	   #print "parsed line: " + str(data)
+       except:
+	   warned = True
+	   print "Execption parsing line: %s" % inline
+	   print "Exception parsing element: %s" % element
+	   raise
+   except:
+       if not warned:
+	   print "Execption parsing line: %s" % inline
+       raise
+
    return data
 
 def parse_keys(data):   #Gets keys from record.     #Warning: We need to deal with new column names?...
@@ -192,8 +206,6 @@ def main():
 
      # Alls good, continue on, come back later and deal with read/write errors.
      line = f.readline()                  # Get first line
-     #print line
-     first_record=parse_line(line)        # Get First line
      #Ignore logfile rotation
      if "turned over" in line:
       line = f.readline()                  # Get first line
