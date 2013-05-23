@@ -124,7 +124,13 @@ def gen_R_graph(sysctl):
    # calls Rscript from command line, using plot_csv.R program
    # Must have R installed to get graphs, and must call program with --rgraph
    print "Generating R graph for:  " + sysctl
-   os.system("Rscript --no-save --slave plot_csv.R " + sysctl)
+   cmd = "Rscript --no-save --slave plot_csv.R " + sysctl
+   print "command: " + cmd
+   rv = os.system(cmd)
+   if rv != 0:
+     print "command returned error status: %d" % rv
+     exit(1)
+
 
 def parse_line(inline):  # Parse line for data
    #inline=inline.strip('\n')
@@ -215,7 +221,7 @@ def main():
      keys=parse_keys(first_record)        # Grab Header/keys
      print "Number of sysctls: " + str(len(keys))
      #records.append(first_record)         # Add first record
-     print "Loading SYSCLT data..."
+     print "Loading data..."
      linecount=0
      for line in iter(f):                 # Read rest of file
        record = parse_line(line)
