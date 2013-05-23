@@ -35,6 +35,8 @@
 myargs <- commandArgs(trailingOnly = TRUE)
 basename <- myargs[1]
 
+#warnings(1)
+
 #Import data 
 #Put this in a string, swap out the add variables for filenames and sysclt, done!
 sysctl_data <- read.table(paste(basename,"csv",sep="."), header=T, sep=",") 
@@ -63,7 +65,7 @@ par(mar = mar.default + c(0, 4, 0, 0))  #Save and set margin
 # Turn off axes and annotations (axis labels) so we can 
 # specify them ourself 
 #plot(sysctl_data$"Date",sysctl_data$"debug.trace_on_panic", type="l", col=plot_colors[1], yaxt="n" ,axes=TRUE, ann=FALSE)
-plot(sysctl_data$"Date",sysctl_data[,c(basename)], type="l", col=plot_colors[1], yaxt="n" ,axes=TRUE, ann=FALSE)
+plot(sysctl_data$"Date",sysctl_data[[basename]], type="l", col=plot_colors[1], yaxt="n" ,axes=TRUE, ann=FALSE)
 grid(col="gray")
 
 
