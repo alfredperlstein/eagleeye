@@ -263,6 +263,7 @@ def main():
                newkeys.append(key)
                break
              i = i + 1
+       print "Unchanged nodes: " + str(list(set(keys) - set(newkeys)))
        print "Number of sysctls with variable data: " + str(len(newkeys))
        keys=newkeys
 
