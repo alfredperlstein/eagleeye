@@ -35,7 +35,8 @@
 myargs <- commandArgs(trailingOnly = TRUE)
 basename <- myargs[1]
 
-#warnings(1)
+options(warn=1)
+
 
 #Import data 
 #Put this in a string, swap out the add variables for filenames and sysclt, done!
@@ -88,7 +89,6 @@ title(xlab= "Time", col.lab=rgb(0,0.5,0))
 #legend(1, max_y, names(sysctl_data), cex=0.8, col=plot_colors, pch=21:23, lty=1:3);
 
 # Turn off device driver (to flush output to png)
-
 
 dev.off()'
 
