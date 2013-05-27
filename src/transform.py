@@ -16,6 +16,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 import sys
 import csv
 import os
+from optparse import OptionParser
+
 ######################################################
 # Name: transform_sysctl.py
 # Author: Larry Maloney
@@ -138,6 +140,8 @@ def parse_line(inline):  # Parse line for data
    try:
        ListOfStrings = inline.split('|') # Parse data
        datestring = ListOfStrings.pop(0) # Extract date field.
+       #d = datetime.datetime.strptime(datestring, '"%a %b %d %T %Z %Y')
+       #datestringUTC = datetime.datetime.strptime(datestring, '"%a %b %d %T %Z %Y')
        data=dict()
        data['Date']=datestring  # Add date key to dictionary
        try:
@@ -170,23 +174,35 @@ def has_duplicates(d):             # Returns true , hmm, don't use cause there c
     return len(d) != len(set(d.values()))
 
 def main():
-     if len(sys.argv) == 1:
+
+
+     parser = OptionParser()
+     parser.add_option("-f", "--file", dest="filename",
+                        help="write report to FILE", metavar="FILE")
+     parser.add_option("-q", "--quiet",
+                        action="store_false", dest="verbose", default=True,
+                        help="don't print status messages to stdout")
+     parser.add_option("--rgraph",
+                        action="store_true", dest="rgraph", default=False,
+                        help="generate graphs using R")
+     parser.add_option("--all",
+                        action="store_true", dest="all", default=False,
+                        help="Graph all CSVs, even unchanging ones")
+     (options, args) = parser.parse_args()
+  
+     if not options.filename:
        print "Error: Missing filename"
        exit(1)
 
-     rgraph = False
-     if len(sys.argv) > 2:
-       if sys.argv[2] == "--rgraph":
-         print "R graph option enabled."
-         rgraph = True
+     if options.rgraph:
+       print "R graph option enabled."
+       rgraph = True
 
-     PurgeDups = True    # Flag to eliminate duplicate readings for sysclts.  Default is to purge.
-     if len(sys.argv) > 3:
-       if sys.argv[3] == "--all":
-         print "Make CSV and graphs for all sysctl's."
-         PurgeDups = False
+     PurgeDups = not options.all # Flag to eliminate duplicate readings for sysclts.  Default is to purge.
+     if PurgeDups:
+       print "Make CSV and graphs for all sysctl's."
 
-     filename = sys.argv[1]
+     filename = options.filename
      print "Reading file: " + filename + " ..."
      records = list()
      f=0
