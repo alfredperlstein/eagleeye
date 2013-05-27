@@ -16,6 +16,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 import sys
 import csv
 import os
+import datetime
 from optparse import OptionParser
 
 ######################################################
@@ -88,7 +89,6 @@ SYMBOLS = {
                        'zebi', 'yobi'),
 } 
 
-
 def human2bytes(s):
     s = s.strip()
     if s.isdigit():
@@ -134,14 +134,24 @@ def gen_R_graph(sysctl):
      exit(1)
 
 
-def parse_line(inline):  # Parse line for data
+def parse_line(inline, fixupDate):  # Parse line for data
    #inline=inline.strip('\n')
    warned = False
    try:
        ListOfStrings = inline.split('|') # Parse data
        datestring = ListOfStrings.pop(0) # Extract date field.
-       #d = datetime.datetime.strptime(datestring, '"%a %b %d %T %Z %Y')
-       #datestringUTC = datetime.datetime.strptime(datestring, '"%a %b %d %T %Z %Y')
+       # convert from date(1) default output to ISODATE
+       #print "fixupDate: %s" % fixupDate
+       if fixupDate:
+         #d = datetime.datetime.strptime(datestring, '%a %b %d %H:%M:%S %Z %Y')
+         darr = datestring.split(" ")
+         tz = darr[4];
+         #print " ".join(darr[0:4] + darr[5:6])
+         d = datetime.datetime.strptime(" ".join(darr[0:4] + darr[5:6]),
+                                    '%a %b %d %H:%M:%S %Y')
+         newdatestring = d.strftime("%Y-%m-%dT%H:%M:%S")
+         #print "%s -> %s" % (datestring, newdatestring)
+         datestring = newdatestring
        data=dict()
        data['Date']=datestring  # Add date key to dictionary
        try:
@@ -188,13 +198,21 @@ def main():
      parser.add_option("--all",
                         action="store_true", dest="all", default=False,
                         help="Graph all CSVs, even unchanging ones")
+     parser.add_option("--fixup-date",
+                        action="store_true", dest="fixupDate", default=False,
+                        help="Fixup date from old runs of EagleEye")
      (options, args) = parser.parse_args()
-  
+ 
+
+     fixupDate = options.fixupDate
+     print "fixupDate: %s" % fixupDate
+
      if not options.filename:
        print "Error: Missing filename"
        exit(1)
 
-     if options.rgraph:
+     rgraph = options.rgraph
+     if rgraph:
        print "R graph option enabled."
        rgraph = True
 
@@ -231,7 +249,7 @@ def main():
      #Ignore logfile rotation
      if "turned over" in line:
       line = f.readline()                  # Get first line
-      first_record=parse_line(line)        # Pet First line
+      first_record=parse_line(line, fixupDate)        # Pet First line
 
 
      keys=parse_keys(first_record)        # Grab Header/keys
@@ -240,7 +258,7 @@ def main():
      print "Loading data..."
      linecount=0
      for line in iter(f):                 # Read rest of file
-       record = parse_line(line)
+       record = parse_line(line, fixupDate)
        if "turned over" in line:
          continue
        compare_keys = list(set(parse_keys(record)) - set(keys))
