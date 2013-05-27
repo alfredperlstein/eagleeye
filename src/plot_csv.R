@@ -45,6 +45,10 @@ sysctl_data <- read.table(paste(basename,"csv",sep="."), header=T, sep=",")
 #Disable scentific notation 
 options("scipen"=100,"digits"=4) 
 
+# XXX: 
+sysctl_data$"posixct" <- as.POSIXct(sysctl_data$"Date", format = "%Y-%m-%dT%H:%M:%S")
+#sysctl_data$"posixct" <- as.POSIXct(sysctl_data$"Date", format = "%a %b %d %T %Z %Y")
+
 #start_time=c(min(sysctl_data["Date"])) 
 #class(start_time)=c("POSIXT","POSIXct")  
 
@@ -66,7 +70,8 @@ par(mar = mar.default + c(0, 4, 0, 0))  #Save and set margin
 # Turn off axes and annotations (axis labels) so we can 
 # specify them ourself 
 #plot(sysctl_data$"Date",sysctl_data$"debug.trace_on_panic", type="l", col=plot_colors[1], yaxt="n" ,axes=TRUE, ann=FALSE)
-plot(sysctl_data$"Date",sysctl_data[[basename]], type="l", col=plot_colors[1], yaxt="n" ,axes=TRUE, ann=FALSE)
+
+plot(sysctl_data$posixct,sysctl_data[[basename]], type="l", col=plot_colors[1], yaxt="n" ,axes=TRUE, ann=FALSE)
 grid(col="gray")
 
 
