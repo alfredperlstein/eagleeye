@@ -33,8 +33,10 @@ OUTFILE="index.html"
 echo "<html><head><title>graphed data</title></head><body>" > $OUTFILE
 
 for file in *.png ; do
+    echo "$file"
     echo "<img src=\"${file}\"><br>" >> $OUTFILE
 done
 
 echo "</body></html>" >> $OUTFILE
+echo "done."
 
