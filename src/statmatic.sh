@@ -23,6 +23,9 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #INTERFACES="cxgb0 cxgb1 cxgb2 cxgb3 lagg0"
 
+# set TZ to UTC otherwise date(1) output is really bad to parse.
+export TZ=UTC
+
 # get all UP interfaces except lo|carp|pflog|pfsync
 INTERFACES=`ifconfig | grep UP | grep '^[a-z][a-z]*' | cut -f1 -d: | egrep -v '^(lo|carp|pflog|pfsync)' | paste -s -d " " - `
 
@@ -46,10 +49,12 @@ fi
 
 BGPIDS=""
 
+ISODATE="date +%Y-%m-%dT%H:%M:%S"
+
 cleanup ()
 {
     echo "Killing stuff monitoring processes"
-    echo "End capturing: ";date
+    echo "End capturing: ";$ISODATE
     nfsstat > nfsstat_end.txt
     zpool_wrap list > zpool_list_end.txt
     netstat -m > netstat_mbufs_end_of_test.txt
@@ -60,7 +65,7 @@ cleanup ()
 
     # Kill pid.
 
-    date > end_time.txt
+    $ISODATE > end_time.txt
     cp /var/log/messages*  ./messages_end_of_test.txt
 
     kill $BGPIDS
@@ -74,6 +79,8 @@ trap cleanup SIGINT SIGTERM
 zfs mount > /dev/null
 if [ $? -eq 0 ] ; then
     ZFS_AVAILABLE=1
+else
+    ZFS_AVAILABLE=0
 fi
 
 zpool_wrap() {
@@ -105,7 +112,7 @@ add_bg() {
 echo "You should execute this sript, while the working directory is on an NFS mount point to store the logging data."
 echo "Capturing data for: $1"
 echo "erasing prior data first"
-echo -n "Start time: ";date
+echo -n "Start time: ";$ISODATE
 echo "Poolname: $POOLNAME"
 
 # Command to mount logging dir for client and targets
@@ -127,7 +134,7 @@ if [ "$USE_HWPMC" = "yes" ] ; then
 fi
 echo "========================Start===================="
 rm *.txt
-date > start_time.txt
+$ISODATE > start_time.txt
 uname -v > uname.txt
 nfsstat > nfsstat_start.txt
 df > df.txt
@@ -165,7 +172,7 @@ actstat_cmd()
     # this?
     python ${arcstat} $w | grep --line-buffered -v 'time' | \
 	$UNBUFFER sh -c 'while read arc_time arc_read  arc_miss  arc_miss_pct  arc_dmis  arc_dm_pct  arc_pmis  arc_pm_pct  arc_mmis  arc_mm_pct arc_sz arc_c ; do
-	echo `date`"|arc_read: $arc_read|arc_miss: $arc_miss|arc_miss_pct: $arc_miss_pct|arc_dmis: $arc_dmis|arc_dm_pct: $arc_dm_pct|arc_pmis: $arc_pmis|arc_pm_pct: $arc_pm_pct|arc_mmis: $arc_mmis|arc_mm_pct: $arc_mm_pct|arc_sz: $arc_sz|arc_c: $arc_c|"
+	echo `$ISODATE`"|arc_read: $arc_read|arc_miss: $arc_miss|arc_miss_pct: $arc_miss_pct|arc_dmis: $arc_dmis|arc_dm_pct: $arc_dm_pct|arc_pmis: $arc_pmis|arc_pm_pct: $arc_pm_pct|arc_mmis: $arc_mmis|arc_mm_pct: $arc_mm_pct|arc_sz: $arc_sz|arc_c: $arc_c|"
     done' > arcstat_${w}_second.txt &
     add_bg $!
 }
@@ -175,7 +182,7 @@ iostat_cmd()
     w=$1
     iostat w $w | grep --line-buffered -v '[^0-9 ]' | \
 	$UNBUFFER sh -c 'while read tin tout us ni sy in id ; do 
-	echo `date`"|tin: $tin|tout: $tout|us: $us|ni: $ni|sy: $sy|in: $in|id: $id|" ;
+	echo `$ISODATE`"|tin: $tin|tout: $tout|us: $us|ni: $ni|sy: $sy|in: $in|id: $id|" ;
     done' > iostat_${w}_second.txt &
     add_bg $!
 }
@@ -186,7 +193,7 @@ nfsstat_cmd()
     w=$1
     nfsstat -e -s -w  $w | grep --line-buffered -v '[^0-9 ]' | \
         $UNBUFFER sh -c 'while GtAttr Lookup Rdlink Read  Write Rename Access  Rddir ; do
-        echo `date`"|GtAttr: $GtAttr|Lookup: $Lookup|RdLink: $Rdlink|Read: $Read|Write: $Write|Rename: $Rename|Rddir: $Rddir|" ;
+        echo `$ISODATE`"|GtAttr: $GtAttr|Lookup: $Lookup|RdLink: $Rdlink|Read: $Read|Write: $Write|Rename: $Rename|Rddir: $Rddir|" ;
     done' > nfsstat_${w}_second.txt &
     add_bg $!
 }
@@ -209,7 +216,7 @@ netstat_iface()
     netstat -I $iface 1 | \
     egrep --line-buffered -v '^ *(input|packets)' | \
 	sed -l 's/  */|/g' | \
-	$UNBUFFER sh -c 'while read line ; do echo `date`"$line" ;done' \
+	$UNBUFFER sh -c 'while read line ; do echo `$ISODATE`"$line" ;done' \
     > netstat_${iface}_1_second.txt &
     add_bg $!
 }
@@ -220,7 +227,7 @@ done
 
 prefix_date()
 {
-    $UNBUFFER sh -c 'while read line ; do echo `date`"$line" ;done' 
+    $UNBUFFER sh -c 'while read line ; do echo `$ISODATE`"$line" ;done' 
 }
 
 echo nfsstat -e -s -w 1 
@@ -235,7 +242,7 @@ echo "One time Statistics captured."
 
 datestamp()
 {
-    echo "=== " `date` " ==="
+    echo "=== " `$ISODATE` " ==="
     $*
 }
 
@@ -262,15 +269,15 @@ to_csv()
 {
     filter=$1
     shift
-    echo -n `date`'|'
+    echo -n `$ISODATE`'|'
     eval $* | $filter
 }
 
 SLEEP_SEC=1
 while [ 1 ]
 do
-    echo "Capturing..." `date`
-    datestamp top -b 10 >> top.txt;
+    echo "Capturing..." `$ISODATE`
+    #datestamp top -b 10 >> top.txt;
     to_csv join_filter netstat -m >> netstat_mbufs_${SLEEP_SEC}_second.txt;
     if [ "$SYSCTL_NODES" = "" ] ; then
 	to_csv sysctl_filter sysctl -a >> sysctl_all_${SLEEP_SEC}_sec.txt;
@@ -281,14 +288,14 @@ do
     fi
     to_csv vmstat_i_filter vmstat -i >> vmstat_interupts_${SLEEP_SEC}_sec.txt;
     if [ "$USE_HWPMC" = "yes" ] ; then
-	date >> pmccontrol_s_5_second.txt;
+	$ISODATE >> pmccontrol_s_5_second.txt;
 	pmccontrol -s >> pmccontrol_s_${SLEEP_SEC}_second.txt;
 	echo >> pmccontrol_s_5_second.txt;
     fi
 
     # vmstat -z output.  this is large, might want to filter out some values
     # or skip and only capture this every few seconds?
-    echo `date`"|"`vmstat -z | grep -v '^ITEM' | grep -v '^$' | paste -s -d "|" - | sed -e 's/  *//g'` >> vmstat_z_${SLEEP_SEC}_second.txt
+    echo `$ISODATE`"|"`vmstat -z | grep -v '^ITEM' | grep -v '^$' | paste -s -d "|" - | sed -e 's/  *//g'` >> vmstat_z_${SLEEP_SEC}_second.txt
 
     sleep $SLEEP_SEC
 done
