@@ -94,6 +94,9 @@ title(xlab= "Time", col.lab=rgb(0,0.5,0))
 #legend(1, max_y, names(sysctl_data), cex=0.8, col=plot_colors, pch=21:23, lty=1:3);
 
 # Turn off device driver (to flush output to png)
-
-dev.off()'
+# emit value to "garbage" to supress warning about being the last open device:
+#  "null device 
+#          1 
+#  "
+garbage <- dev.off()
 
