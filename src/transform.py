@@ -207,9 +207,25 @@ def main():
      fixupDate = options.fixupDate
      print "fixupDate: %s" % fixupDate
 
+     #f = None
      if not options.filename:
-       print "Error: Missing filename"
-       exit(1)
+       print "Reading from stdin"
+       f = sys.stdin
+     else:
+       filename = options.filename
+       print "Reading file: " + filename + " ..."
+       f=0
+       try:
+         f = open(filename, "r")  # Open file
+       except IOError as e:
+         print "I/O error({0}): {1}".format(e.errno, e.strerror)
+         exit(2)
+       except:
+         print "Unexpected error:", sys.exc_info()[0]
+         exit(3)
+      
+
+     # Option to ignore static values
 
      rgraph = options.rgraph
      if rgraph:
@@ -220,20 +236,7 @@ def main():
      if PurgeDups:
        print "Make CSV and graphs for all sysctl's."
 
-     filename = options.filename
-     print "Reading file: " + filename + " ..."
      records = list()
-     f=0
-     try:
-       f =open(filename, "r")  # Open file
-     except IOError as e:
-        print "I/O error({0}): {1}".format(e.errno, e.strerror)
-        exit(2)
-     except:
-       print "Unexpected error:", sys.exc_info()[0]
-       exit(3)
-
-     # Option to ignore static values
 
      # Read in blacklist if file exists
      if os.path.exists("blacklist.txt"): #If the blackfile exists
@@ -317,7 +320,8 @@ def main():
      print "Writing file with all sysctls.."
      #So, we need to add 'Date' here to the dictionary
      dictwriter.writerows(records)
-     f.close()
+     if f != sys.stdin:
+         f.close()
      print " Done."
      print "Writing individiual sysctl files..."
      #Iterate through all the keys, and write seperate files out.     
