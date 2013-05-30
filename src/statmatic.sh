@@ -280,17 +280,17 @@ do
     #datestamp top -b 10 >> top.txt;
     to_csv join_filter netstat -m >> netstat_mbufs_${SLEEP_SEC}_second.txt;
     if [ "$SYSCTL_NODES" = "" ] ; then
-	to_csv sysctl_filter sysctl -a >> sysctl_all_${SLEEP_SEC}_sec.txt;
+	to_csv sysctl_filter sysctl -a >> sysctl_all_${SLEEP_SEC}_second.txt;
     else
 	for node in $SYSCTL_NODES ; do
-	    to_csv sysctl_filter sysctl $node >> sysctl_${node}_${SLEEP_SEC}_sec.txt;
+	    to_csv sysctl_filter sysctl $node >> sysctl_${node}_${SLEEP_SEC}_second.txt;
 	done
     fi
-    to_csv vmstat_i_filter vmstat -i >> vmstat_interupts_${SLEEP_SEC}_sec.txt;
+    to_csv vmstat_i_filter vmstat -i >> vmstat_interupts_${SLEEP_SEC}_second.txt;
     if [ "$USE_HWPMC" = "yes" ] ; then
-	$ISODATE >> pmccontrol_s_5_second.txt;
+	$ISODATE >> pmccontrol_s_${SLEEP_SEC}_second.txt;
 	pmccontrol -s >> pmccontrol_s_${SLEEP_SEC}_second.txt;
-	echo >> pmccontrol_s_5_second.txt;
+	echo >> pmccontrol_s_${SLEEP_SEC}_second.txt;
     fi
 
     # vmstat -z output.  this is large, might want to filter out some values
