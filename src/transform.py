@@ -80,8 +80,12 @@ from optparse import OptionParser
 #===========================================================================================================================
 blacklist = []  #Empty Global blacklist. Add control name as string for hardcoded values, also reads blacklist_sysctl.txt if it exists
 
+# table to lookup common extensions for value sizes
+# key is relatively meaningless, however the value is a set whose order
+#   determines the resulting value.
 SYMBOLS = {
-    'customary'     : ('B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB','M','G'),
+    'customary'     : ('B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'),
+    'customary_short'     : ('B', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y'),
     'customary_ext' : ('byte', 'kilo', 'mega', 'giga', 'tera', 'peta', 'exa',
                        'zetta', 'iotta'),
     'iec'           : ('Bi', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi', 'Yi'),
@@ -101,6 +105,10 @@ def human2bytes(s):
       >>> human2bytes('34GB')
       36507222016L
     """
+
+    #
+    # Split the string into its numeric part and then the
+    # rest of the string.
     init = s
     num = ""
     while s and s[0:1].isdigit() or s[0:1] == '.':
@@ -108,6 +116,8 @@ def human2bytes(s):
         s = s[1:]
     num = float(num)
     letter = s.strip()    
+
+    # Search for the symbol in 
     for name, sset in SYMBOLS.items():
         if letter in sset:
             break
@@ -117,9 +127,17 @@ def human2bytes(s):
             letter = letter.upper()
         else:
             raise ValueError("can't interpret %r" % init)
-    prefix = {sset[0]:1}
+
+    # setup 'prefix' as a lookup table mapping each proper power of two
+    # for each prefix.
+    #
+    # >>> prefix
+    # {'B': 1, 'E': 1152921504606846976, 'G': 1073741824, 'K': 1024, 'M': 1048576, 'P': 1125899906842624, 'T': 1099511627776, 'Y': 1208925819614629174706176L, 'Z': 1180591620717411303424L}
+    # 
+    prefix = {sset[0] : 1}
     for i, s in enumerate(sset[1:]):
         prefix[s] = 1 << (i+1)*10
+
     return int(num * prefix[letter])
 
 def gen_R_graph(sysctl):
