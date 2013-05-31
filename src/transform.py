@@ -185,6 +185,8 @@ def has_duplicates(d):             # Returns true , hmm, don't use cause there c
 
 def main():
 
+     # unbuffer stdout
+     sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
 
      parser = OptionParser()
      parser.add_option("-f", "--file", dest="filename",
