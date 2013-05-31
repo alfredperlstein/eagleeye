@@ -14,11 +14,13 @@ fi
 # such as "<118> syncpeer: 0.0.0.0 maxupd: 128", use this
 # sed to strip it out.
 
-# 1st pattern: replace any column that doesn't start with [a-z]
-# 2nd pattern: replace any column that has non numeric data
-# 3rd pattern: replace any column with multiple occurences of whitespace
+# Patterns:
+# 1: Remove leading whitespace from any column
+# 2: remove any column that doesn't start with [a-z]
+# 3: remove any column that has non numeric data
+# 4: remove any column with multiple occurences of whitespace
 sed $INPLACE \
-     -e 's/| *//g' \
+     -e 's/| */|/g' \
      -e 's/|[^a-z][^|]*//g' \
      -e 's/|[^|:]*: [^0-9][^|]*//g' \
      -e 's/|[^| ]* [^| ]* [^|]*//g' \
