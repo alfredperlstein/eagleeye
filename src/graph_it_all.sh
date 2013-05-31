@@ -1,6 +1,7 @@
 #!/bin/sh
 
-TRANSFORM="python transform.py"
+#TRANSFORM_ARGS=" --fixup-date"
+TRANSFORM="python transform.py $TRANSFORM_ARGS"
 # Process compressed the newsyslog files.
 
 set -x
