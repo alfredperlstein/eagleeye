@@ -201,6 +201,9 @@ def main():
      parser.add_option("--fixup-date",
                         action="store_true", dest="fixupDate", default=False,
                         help="Fixup date from old runs of EagleEye")
+     parser.add_option("-a", "--append-csv",
+                        action="store_true", dest="appendCSV", default=False,
+                        help="Append to CSV instead of creating it.")
      (options, args) = parser.parse_args()
  
 
@@ -326,9 +329,15 @@ def main():
      print "Writing individiual sysctl files..."
      #Iterate through all the keys, and write seperate files out.     
      for sysctl in keys:
+
        if sysctl == 'Date': # We don't want this file generated
          continue
-       f=open(sysctl+'.csv','wb')
+
+       if options.appendCSV:
+         f=open(sysctl+'.csv','ab')
+       else:
+         f=open(sysctl+'.csv','wb')
+
        sysctl_list = list()
        sysctl_list.append('Date')
        sysctl_list.append(sysctl)
