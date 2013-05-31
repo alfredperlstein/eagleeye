@@ -297,7 +297,8 @@ def main():
        linecount += 1 # Increment
        print " lines \r",linecount, 
      
-     f.close()
+     if f != sys.stdin:
+         f.close()
      print "Number of samples: " + str(len(records))
 
      #Go through list of dictionaries, and remove entries that all have identical values..
