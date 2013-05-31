@@ -152,9 +152,11 @@ def gen_R_graph(sysctl):
      exit(1)
 
 
-def parse_line(inline, fixupDate):  # Parse line for data
+def parse_line(inline, filename, line, fixupDate):  # Parse line for data
    #inline=inline.strip('\n')
    warned = False
+   if filename is None:
+       filename = "<stdin>"
    try:
        ListOfStrings = inline.split('|') # Parse data
        datestring = ListOfStrings.pop(0) # Extract date field.
@@ -173,22 +175,22 @@ def parse_line(inline, fixupDate):  # Parse line for data
        data=dict()
        data['Date']=datestring  # Add date key to dictionary
        try:
-	   for element in ListOfStrings:
-	     if element != '\n':  #Ignore end of line in list
-	       #print "element being parsed: %s" % element
-	       x = element.split(':')
-	       if x[0] not in blacklist:
-		 data[x[0]] = human2bytes(x[1])
-	   #print "parsed line: " + str(data)
+         for element in ListOfStrings:
+           if element != '\n':  #Ignore end of line in list
+             #print "element being parsed: %s" % element
+             x = element.split(':')
+             if x[0] not in blacklist:
+               data[x[0]] = human2bytes(x[1])
+         #print "parsed line: " + str(data)
        except:
-	   warned = True
-	   print "Execption parsing line: %s" % inline
-	   print "Exception parsing element: %s" % element
-	   raise
+         warned = True
+         print "Execption parsing line %d of file %s: %s" % (line, filename, inline[:40])
+         print "Exception parsing element: %s" % element
+         raise
    except:
-       if not warned:
-	   print "Execption parsing line: %s" % inline
-       raise
+     if not warned:
+       print "Execption parsing line %d of file %s: %s" % (line, filename, inline[:40])
+     raise
 
    return data
 
@@ -273,11 +275,12 @@ def main():
 
      # Alls good, continue on, come back later and deal with read/write errors.
      line = f.readline()                  # Get first line
+     lineno=1
      #Ignore logfile rotation
      if "turned over" in line:
       line = f.readline()                  # Get first line
 
-     first_record=parse_line(line, fixupDate)        # Pet First line
+     first_record=parse_line(line, filename, lineno, fixupDate)        # Pet First line
 
      keys=parse_keys(first_record)        # Grab Header/keys
      print "Number of sysctls: " + str(len(keys))
@@ -285,7 +288,7 @@ def main():
      print "Loading data..."
      linecount=0
      for line in iter(f):                 # Read rest of file
-       record = parse_line(line, fixupDate)
+       record = parse_line(line, filename, lineno, fixupDate)
        if "turned over" in line:
          continue
        compare_keys = list(set(parse_keys(record)) - set(keys))
