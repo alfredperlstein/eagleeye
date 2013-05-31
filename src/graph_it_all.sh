@@ -46,12 +46,12 @@ process_uncompressed_files()
     process_files "" `find . -depth 1 -and \( -name \*_second.txt -or -name \*_sec.txt \)`
 }
 
-rm *.csv
 
+rm -f *.csv
 process_compressed_files
 process_uncompressed_files
 set -e
 for file in ./*.csv ; do
-    Rscript --no-save --slave plot_csv.R $file
+    Rscript --no-save --slave plot_csv.R ${file%.csv}
 done
 set +e
