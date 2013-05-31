@@ -44,12 +44,14 @@ if [ "$VERBOSE" = "yes" ] ; then
     set -x
 fi
 
+: ${SLEEP_SEC=1}
+
 # don't set this, by default we'll do a sysctl -a
 #: ${SYSCTL_NODES="vm nfs kern"}
 
 BGPIDS=""
 
-ISODATE="date +%Y-%m-%dT%H:%M:%S"
+export ISODATE="date +%Y-%m-%dT%H:%M:%S"
 
 cleanup ()
 {
@@ -192,7 +194,7 @@ nfsstat_cmd()
 {
     w=$1
     nfsstat -e -s -w  $w | grep --line-buffered -v '[^0-9 ]' | \
-        $UNBUFFER sh -c 'while GtAttr Lookup Rdlink Read  Write Rename Access  Rddir ; do
+        $UNBUFFER sh -c 'while read GtAttr Lookup Rdlink Read  Write Rename Access  Rddir ; do
         echo `$ISODATE`"|GtAttr: $GtAttr|Lookup: $Lookup|RdLink: $Rdlink|Read: $Read|Write: $Write|Rename: $Rename|Rddir: $Rddir|" ;
     done' > nfsstat_${w}_second.txt &
     add_bg $!
@@ -211,18 +213,19 @@ fi
 # remove the header columns, prefix with a date, format for CSV
 netstat_iface() 
 {
-    iface=$1
+    sleeptime=$1
+    iface=$2
     echo "Running netstat_iface on $iface..."
-    netstat -I $iface 1 | \
+    netstat -I $iface $sleeptime | \
     egrep --line-buffered -v '^ *(input|packets)' | \
-	sed -l 's/  */|/g' | \
-	$UNBUFFER sh -c 'while read line ; do echo `$ISODATE`"$line" ;done' \
-    > netstat_${iface}_1_second.txt &
+	sed -l 's/  */ /g' | \
+	$UNBUFFER sh -c 'while read ipackets ierrs idrops ibytes opackets oerrs obytes colls; do echo `$ISODATE`"|ipackets: $ipackets|ierrs: $ierrs|idrops: $idrops|ibytes: $ibytes|opackets: $opackets|oerrs: $oerrs|obytes: $obytes|colls: $colls|" ;done' \
+    > netstat_${iface}_${sleeptime}_second.txt &
     add_bg $!
 }
 
 for iface in $INTERFACES ; do
-    netstat_iface $iface
+    netstat_iface $SLEEP_SEC $iface
 done
 
 prefix_date()
@@ -273,7 +276,6 @@ to_csv()
     eval $* | $filter
 }
 
-SLEEP_SEC=1
 while [ 1 ]
 do
     echo "Capturing..." `$ISODATE`
