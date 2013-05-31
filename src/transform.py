@@ -257,8 +257,8 @@ def main():
      #Ignore logfile rotation
      if "turned over" in line:
       line = f.readline()                  # Get first line
-      first_record=parse_line(line, fixupDate)        # Pet First line
 
+     first_record=parse_line(line, fixupDate)        # Pet First line
 
      keys=parse_keys(first_record)        # Grab Header/keys
      print "Number of sysctls: " + str(len(keys))
