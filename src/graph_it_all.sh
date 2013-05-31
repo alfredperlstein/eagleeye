@@ -16,7 +16,7 @@ process_files()
     local curfile=1
 
     for file in $* ; do
-	echo $file | grep -Eq '/(netstat_mbufs_|vmstat_interupts_|vmstat_z_|zpool_iostat_)'
+	echo $file | grep -Eq '/(netstat_mbufs_|vmstat_interupts_|vmstat_z_|zpool_iostat_|vmstat_5_second.txt)'
 	if [ $? -eq 0 ] ; then
 	    continue
 	fi
