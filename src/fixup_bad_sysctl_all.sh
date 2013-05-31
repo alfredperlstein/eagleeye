@@ -18,6 +18,7 @@ fi
 # 2nd pattern: replace any column that has non numeric data
 # 3rd pattern: replace any column with multiple occurences of whitespace
 sed $INPLACE \
+     -e 's/| *//g' \
      -e 's/|[^a-z][^|]*//g' \
      -e 's/|[^|:]*: [^0-9][^|]*//g' \
      -e 's/|[^| ]* [^| ]* [^|]*//g' \
