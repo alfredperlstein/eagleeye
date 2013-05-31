@@ -231,7 +231,8 @@ def main():
      print "fixupDate: %s" % fixupDate
 
      #f = None
-     if not options.filename:
+     filename = options.filename
+     if filename is None:
        print "Reading from stdin"
        f = sys.stdin
      else:
@@ -335,16 +336,17 @@ def main():
 
      ########################################
      # Write out,one swoop
-     print "Writing all data to: " + filename+'.csv',
-     f=open(filename+'.csv', 'wb')
-     dictwriter = csv.DictWriter(f, keys,restval=0,extrasaction='ignore') #restval gets added in case a sysctl comes in that we don't know about.
-     keys.insert(0,'Date')                                          #Insert the date key first
-     dictwriter.writer.writerow(keys)                               # Use list of keys from header, forces sort.
-     print "Writing file with all sysctls.."
-     #So, we need to add 'Date' here to the dictionary
-     dictwriter.writerows(records)
-     if f != sys.stdin:
-         f.close()
+     if filename:
+       print "Writing all data to: " + filename+'.csv',
+       f=open(filename+'.csv', 'wb')
+       dictwriter = csv.DictWriter(f, keys,restval=0,extrasaction='ignore') #restval gets added in case a sysctl comes in that we don't know about.
+       keys.insert(0,'Date')                                          #Insert the date key first
+       dictwriter.writer.writerow(keys)                               # Use list of keys from header, forces sort.
+       print "Writing file with all sysctls.."
+       #So, we need to add 'Date' here to the dictionary
+       dictwriter.writerows(records)
+       f.close()
+
      print " Done."
      print "Writing individiual sysctl files..."
      #Iterate through all the keys, and write seperate files out.     
