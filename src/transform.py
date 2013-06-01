@@ -341,7 +341,7 @@ def main():
 
      ########################################
      # Write out,one swoop
-     if filename:
+     if None or filename:
        print "Writing all data to: " + filename+'.csv',
        f=open(filename+'.csv', 'wb')
        dictwriter = csv.DictWriter(f, keys,restval=0,extrasaction='ignore') #restval gets added in case a sysctl comes in that we don't know about.
