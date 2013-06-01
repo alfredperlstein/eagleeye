@@ -88,7 +88,8 @@ def main():
 	    current_divname = divname
 	    indexfile.write(indent + '<div id="%s">\n' % divname)
 	    indent += '  '
-	    all_divs.append(divname) 
+	    if divname not in all_divs:
+		all_divs.append(divname) 
 
 	#print "div: " + current_divname + " " + divname
 	#print mibarray
