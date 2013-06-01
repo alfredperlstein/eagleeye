@@ -32,7 +32,7 @@ def main():
     largefile.write(html)
 
     indexfile.write('''
-	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.3/jquery.min.js"></script>
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>	
 	<link rel="stylesheet" type="text/css" href="index.css">
 	<div class="navbar">
 	    <div class="navcheckboxes">
