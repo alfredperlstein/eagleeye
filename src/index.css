@@ -1,5 +1,5 @@
 .navbar {
-    position:fixed; top:0px; right:0px; width:1400px; z-index:2;
+    position:fixed; top:0px; right:0px; width:1100px; z-index:2;
 }
 .navcheckboxes { float:right; width:400px; }
 .navbarleft { float:left; width:200px; }
@@ -7,6 +7,6 @@
 .navbarbottom { float:bottom; width:400px;  }
 
 .largeimage {
-    float:left; width:1000px;
+    float:left; width:625px;
    /*# position:fixed; top:300px; right:600px; z-index:1; */
 }

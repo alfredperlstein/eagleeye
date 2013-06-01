@@ -11,7 +11,7 @@ function handleCheckbox(cb) {
 
 for (var i = 0; i < allDivs.length; i++) {
     var cDiv = allDivs[i];
-    if (i % 2 == 0) {
+    if (i > allDivs.length / 2 == 0) {
 	dest = ".navbarleft";
     } else {
 	dest = ".navbarright";
@@ -28,7 +28,7 @@ $('.smallgraph').mouseover(function() {
     var newImage = this.src
     $('.largeimage').hide()
     // $('.largeimage').replaceWith('<div class="largeimage"><img src="' + this.src + '" height=400 width=800></div>');
-    $('.largeimage').replaceWith('<div class="largeimage"><img src="' + this.src + '" width=1000></div>');
+    $('.largeimage').replaceWith('<div class="largeimage"><img src="' + this.src + '" width=625></div>');
     $('.largeimage').show()
 });
 

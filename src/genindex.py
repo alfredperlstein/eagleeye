@@ -110,7 +110,7 @@ def main():
 	indexfile.write(
 		indent + "<a href=\"" + largefilename + "#" + file + "\">\n" +
 		indent + "  <p>" + file + "<br>\n" +
-		indent + "  <img class=\"smallgraph\" src=\"" + file + "\" height=200 width=400>\n" +
+		indent + "  <img class=\"smallgraph\" src=\"" + file + "\" width=300>\n" +
 		indent + "<br>\n" + 
 		indent + "</a>\n")
 
