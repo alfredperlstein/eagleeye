@@ -15,6 +15,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 
 import glob
+import re
 
 def main():
     pngs = glob.glob('*.png')
@@ -31,16 +32,67 @@ def main():
     largefile.write(html)
 
     div = None
+    insysctl = False # sysctl output is huge, track that we're inside it.
+    indent = ""
+    current_divname = None
     for file in pngs:
-	indexfile.write("<a href=\"" + largefilename + "#${file}\">")
-	indexfile.write("<p>" + file + "<br>")
-	indexfile.write("<img src=\"" + file + "\" height=200 width=400><br>")
-	indexfile.write("</a>")
+
+	# we want to do a decent job of splitting this page up based
+	# mibs, so try to group the mibs based on number of components
+	# in the mib.
+
+	# get everything but the .png
+	mibarray = file.split(".")[:-1]
+
+	# sysctl is very big, wrap the entire thing with a div
+	if mibarray[0] == "sysctl_all":
+	    mibarray = mibarray[1:] # trim off the sysctl_all
+	    if not insysctl:
+		insysctl = True
+		indexfile.write('<div id="sysctl_all">\n')
+		indent += "  "
+	else:
+	    if insysctl:
+		insysctl = False
+		indexfile.write('</div> <!-- div id="sysctl_all"-->\n')
+		indent = indent[:-2]
+
+	# if the mib is small then just make a div for the top level,
+	# otherwise make it for the secondary levels
+	if len(mibarray) < 3:
+	    divname = mibarray[0]
+	else:
+	    divname = ".".join(mibarray[0:2])
+
+	# create a new div if needed (and close an older one)
+	if current_divname != divname:
+	    # close current div if open
+	    #  or update indent if this is the first div we are opening
+	    if current_divname != None:
+		indent = indent[:-2]
+		indexfile.write(indent +
+			'</div> <!-- div id="%s"-->\n' % current_divname)
+	    current_divname = divname
+	    indexfile.write(indent + '<div id="%s">\n' % divname)
+	    indent += '  '
+
+	#print "div: " + current_divname + " " + divname
+	#print mibarray
+
+	indexfile.write(
+		indent + "<a href=\"" + largefilename + "#" + file + "\">\n" +
+		indent + "  <p>" + file + "<br>\n" +
+		indent + "  <img src=\"" + file + "\" height=200 width=400>\n" +
+		indent + "<br>\n" + 
+		indent + "</a>\n")
 
 	largefile.write("<a id=\"" + file + "\"><p>" + file + "<br></a>")
 	largefile.write("<img src=\"" + file + "\"><br>")
-	print "linked: " + file
+	print "--- linked: " + file
 
+    if current_divname != None:
+	indexfile.write(indent +
+		'</div> <!-- div id="%s"-->\n' % current_divname)
     html = "</body></html>"
     indexfile.write(html)
     largefile.write(html)
