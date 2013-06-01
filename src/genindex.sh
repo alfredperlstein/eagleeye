@@ -28,15 +28,24 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-OUTFILE="index.html"
+INDEX_FILE="index.html"
+LARGE_FILE="large.html"
 
-echo "<html><head><title>graphed data</title></head><body>" > $OUTFILE
+echo "<html><head><title>graphed data</title></head><body>" > $INDEX_FILE
+echo "<html><head><title>graphed data</title></head><body>" > $LARGE_FILE
 
 for file in *.png ; do
     echo "$file"
-    echo "<img src=\"${file}\"><br>" >> $OUTFILE
+    echo "<a href=\"${LARGE_FILE}#${file}\">" >> $INDEX_FILE
+    echo "<p>$file<br>" >> $INDEX_FILE
+    echo "<img src=\"${file}\" height=200 width=400><br>" >> $INDEX_FILE
+    echo "</a>" >> $INDEX_FILE
+
+    echo "<a id=\"${file}\"><p>$file<br></a>" >> $LARGE_FILE
+    echo "<img src=\"${file}\"><br>" >> $LARGE_FILE
 done
 
-echo "</body></html>" >> $OUTFILE
+echo "</body></html>" >> $LARGE_FILE
+echo "</body></html>" >> $INDEX_FILE
 echo "done."
 
