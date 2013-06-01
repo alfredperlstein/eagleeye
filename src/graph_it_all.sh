@@ -58,3 +58,6 @@ for file in ./*.csv ; do
     Rscript --no-save --slave plot_csv.R $file $base ${base}.png
 done
 set +e
+
+# make html
+python genindex.py
