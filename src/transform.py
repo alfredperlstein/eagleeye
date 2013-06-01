@@ -227,6 +227,9 @@ def main():
      parser.add_option("-a", "--append-csv",
                         action="store_true", dest="appendCSV", default=False,
                         help="Append to CSV instead of creating it.")
+     parser.add_option("--prefix", dest="prefix", default="",
+                        help="prefix the output files columns and csv files")
+                        
      (options, args) = parser.parse_args()
  
 
@@ -360,17 +363,22 @@ def main():
        if sysctl == 'Date': # We don't want this file generated
          continue
 
+       outfilename = options.prefix + sysctl + '.csv'
        if options.appendCSV:
-         f=open(sysctl+'.csv','ab')
+         f=open(outfilename,'ab')
        else:
-         f=open(sysctl+'.csv','wb')
+         f=open(outfilename,'wb')
+
+       cvsheader_list = list()
+       cvsheader_list.append('Date')
+       cvsheader_list.append(options.prefix + sysctl)
 
        sysctl_list = list()
        sysctl_list.append('Date')
        sysctl_list.append(sysctl)
-       print "Data: " + str(sysctl+".csv")
+       print "Data: " + outfilename
        dictwriter = csv.DictWriter(f, sysctl_list,restval=0,extrasaction='ignore') #restval gets added in case a sysctl comes in that we don't know about.
-       dictwriter.writer.writerow(sysctl_list)                               # Use list of keys from header, forces sort.
+       dictwriter.writer.writerow(cvsheader_list)                               # Use list of keys from header, forces sort.
        #print "Writing file.." + outfile+'.csv'
        dictwriter.writerows(records)
        f.close()
