@@ -32,12 +32,17 @@ def main():
     largefile.write(html)
 
     indexfile.write('''
-	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>	
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 	<link rel="stylesheet" type="text/css" href="index.css">
 	<div class="navbar">
 	    <div class="navcheckboxes">
 		<div class="navbarleft"></div>
 		<div class="navbarright"></div>
+		<div class="navbarbottom">
+		  <br>
+		  <hr>
+		  <label><input type='button' onclick='toggleAllNav();'>Toggle all</label>
+		</div>
 	    </div>
 	    <div class="largeimage">
 
@@ -59,25 +64,21 @@ def main():
 
 	# get everything but the .png
 	mibarray = file.split(".")[:-1]
+	topmib = mibarray[0]
 
 	# we will use this later to assign ids to all of our images
 	imgid = "_".join(mibarray)
 
 	# sysctl is very big, wrap the entire thing with a div
-	if mibarray[0] == "sysctl_all":
-	    if "sysctl_all" not in all_divs:
-		all_divs.append("sysctl_all") 
+	if topmib == "sysctl_all":
+#	    if "sysctl_all" not in all_divs:
+#		all_divs.append("sysctl_all") 
 	    mibarray = mibarray[1:] # trim off the sysctl_all
-	    if not insysctl:
-		insysctl = True
-		indexfile.write('<div id="sysctl_all">\n')
-		indent += "  "
-	else:
-	    if insysctl:
-		insysctl = False
-		indexfile.write('</div> <!-- div id="sysctl_all"-->\n')
-		indent = indent[:-2]
-
+#	    if not insysctl:
+#		insysctl = True
+#		indexfile.write('<div id="sysctl_all">\n')
+#		indent += "  "
+	
 	# if the mib is small then just make a div for the top level,
 	# otherwise make it for the secondary levels
 	if len(mibarray) < 3:
@@ -93,6 +94,10 @@ def main():
 		indent = indent[:-2]
 		indexfile.write(indent +
 			'</div> <!-- div id="%s"-->\n' % current_divname)
+#	    if topmib != "sysctl_all" and insysctl:
+#		    insysctl = False
+#		    indent = indent[:-2]
+#		    indexfile.write('</div> <!-- div id="sysctl_all"-->\n')
 	    current_divname = divname
 	    indexfile.write(indent + '<div id="%s">\n' % divname)
 	    indent += '  '

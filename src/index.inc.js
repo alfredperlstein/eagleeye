@@ -17,7 +17,7 @@ for (var i = 0; i < allDivs.length; i++) {
 	dest = ".navbarright";
     }
     $(dest).append(
-		      '<label><input type=\'checkbox\' name=\'' +
+		      '<label><input class=\'filtercheckbox\' type=\'checkbox\' name=\'' +
 		      cDiv +
 		      '\' onclick=\'handleCheckbox(this);\'>' +
 		      //'\' onclick=\'alert(this.name);\'>' +
@@ -27,9 +27,17 @@ for (var i = 0; i < allDivs.length; i++) {
 $('.smallgraph').mouseover(function() {
     var newImage = this.src
     $('.largeimage').hide()
-    $('.largeimage').replaceWith('<div class="largeimage"><img src="' + this.src + '" height=400 width=800></div>');
+    // $('.largeimage').replaceWith('<div class="largeimage"><img src="' + this.src + '" height=400 width=800></div>');
+    $('.largeimage').replaceWith('<div class="largeimage"><img src="' + this.src + '" width=1000></div>');
     $('.largeimage').show()
 });
+
+function toggleAllNav() {
+    $('.filtercheckbox').each(function(i) {
+	$(this).prop('checked', !$(this).prop('checked'));
+	handleCheckbox($(this).get(0));
+    });
+}
 
 <!--	    <script type="text/javascript">
 $("hideme").hide();
