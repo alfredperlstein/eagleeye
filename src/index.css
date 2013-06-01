@@ -1,0 +1,5 @@
+.navbar {
+    position:fixed; top:0px; right:0px; width:400px;
+}
+.navbarleft { float:left; width:200px; }
+.navbarright { float:right; width:200px;  }

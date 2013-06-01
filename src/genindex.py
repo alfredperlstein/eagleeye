@@ -31,8 +31,14 @@ def main():
     indexfile.write(html)
     largefile.write(html)
 
-    indexfile.write('<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.3/jquery.min.js"></script>\n')
-    indexfile.write('<div id="test"></div>\n')
+    indexfile.write('''
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.3/jquery.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="index.css">
+	<div class="navbar">
+	    <div class="navbarleft"></div>
+	    <div class="navbarright"></div>
+        </div>
+	''')
     
     all_divs = list()
 
@@ -51,6 +57,8 @@ def main():
 
 	# sysctl is very big, wrap the entire thing with a div
 	if mibarray[0] == "sysctl_all":
+	    if "sysctl_all" not in all_divs:
+		all_divs.append("sysctl_all") 
 	    mibarray = mibarray[1:] # trim off the sysctl_all
 	    if not insysctl:
 		insysctl = True
