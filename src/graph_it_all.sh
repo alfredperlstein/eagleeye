@@ -61,3 +61,6 @@ set +e
 
 # make html
 python genindex.py
+
+# copy to staging directory
+sh stage.sh stage
