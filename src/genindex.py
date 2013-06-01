@@ -31,6 +31,11 @@ def main():
     indexfile.write(html)
     largefile.write(html)
 
+    indexfile.write('<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.3/jquery.min.js"></script>\n')
+    indexfile.write('<div id="test"></div>\n')
+    
+    all_divs = list()
+
     div = None
     insysctl = False # sysctl output is huge, track that we're inside it.
     indent = ""
@@ -75,6 +80,7 @@ def main():
 	    current_divname = divname
 	    indexfile.write(indent + '<div id="%s">\n' % divname)
 	    indent += '  '
+	    all_divs.append(divname) 
 
 	#print "div: " + current_divname + " " + divname
 	#print mibarray
@@ -93,7 +99,21 @@ def main():
     if current_divname != None:
 	indexfile.write(indent +
 		'</div> <!-- div id="%s"-->\n' % current_divname)
-    html = "</body></html>"
+
+    indexfile.write('<div id="nav">')
+    js= '''
+	    <script>
+	    var allDivs=''' + str(all_divs) + ''';
+	    </script>
+	    <script src="index.inc.js"></script>
+	    '''
+
+    indexfile.write(js)
+    print all_divs
+    indexfile.write('\n</div> <!-- id="nav"-->\n')
+
+
+    html = "\n</body></html>"
     indexfile.write(html)
     largefile.write(html)
 
