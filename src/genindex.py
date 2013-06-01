@@ -35,8 +35,13 @@ def main():
 	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.3/jquery.min.js"></script>
 	<link rel="stylesheet" type="text/css" href="index.css">
 	<div class="navbar">
-	    <div class="navbarleft"></div>
-	    <div class="navbarright"></div>
+	    <div class="navcheckboxes">
+		<div class="navbarleft"></div>
+		<div class="navbarright"></div>
+	    </div>
+	    <div class="largeimage">
+
+	    </div>
         </div>
 	''')
     
@@ -54,6 +59,9 @@ def main():
 
 	# get everything but the .png
 	mibarray = file.split(".")[:-1]
+
+	# we will use this later to assign ids to all of our images
+	imgid = "_".join(mibarray)
 
 	# sysctl is very big, wrap the entire thing with a div
 	if mibarray[0] == "sysctl_all":
@@ -97,7 +105,7 @@ def main():
 	indexfile.write(
 		indent + "<a href=\"" + largefilename + "#" + file + "\">\n" +
 		indent + "  <p>" + file + "<br>\n" +
-		indent + "  <img src=\"" + file + "\" height=200 width=400>\n" +
+		indent + "  <img class=\"smallgraph\" src=\"" + file + "\" height=200 width=400>\n" +
 		indent + "<br>\n" + 
 		indent + "</a>\n")
 

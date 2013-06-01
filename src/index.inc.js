@@ -24,6 +24,13 @@ for (var i = 0; i < allDivs.length; i++) {
 		      '</label><a href=\'#' + cDiv + '\'>' + cDiv + '</a><br>');
 }
 
+$('.smallgraph').mouseover(function() {
+    var newImage = this.src
+    $('.largeimage').hide()
+    $('.largeimage').replaceWith('<div class="largeimage"><img src="' + this.src + '" height=400 width=800></div>');
+    $('.largeimage').show()
+});
+
 <!--	    <script type="text/javascript">
 $("hideme").hide();
 -->
