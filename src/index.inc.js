@@ -21,7 +21,7 @@ for (var i = 0; i < allDivs.length; i++) {
 		      cDiv +
 		      '\' onclick=\'handleCheckbox(this);\'>' +
 		      //'\' onclick=\'alert(this.name);\'>' +
-		      cDiv + '</label><br>');
+		      '</label><a href=\'#' + cDiv + '\'>' + cDiv + '</a><br>');
 }
 
 <!--	    <script type="text/javascript">
