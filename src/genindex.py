@@ -75,7 +75,7 @@ def main():
 	if len(mibarray) < 3:
 	    divname = mibarray[0]
 	else:
-	    divname = ".".join(mibarray[0:2])
+	    divname = "_".join(mibarray[0:2])
 
 	# create a new div if needed (and close an older one)
 	if current_divname != divname:
