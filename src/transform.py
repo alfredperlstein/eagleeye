@@ -144,7 +144,8 @@ def gen_R_graph(sysctl):
    # calls Rscript from command line, using plot_csv.R program
    # Must have R installed to get graphs, and must call program with --rgraph
    print "Generating R graph for:  " + sysctl
-   cmd = "Rscript --no-save --slave plot_csv.R " + sysctl
+   cmd = "Rscript --no-save --slave plot_csv.R %s.csv %s %s.png" % (sysctl,
+           sysctl, sysctl)
    print "command: " + cmd
    rv = os.system(cmd)
    if rv != 0:

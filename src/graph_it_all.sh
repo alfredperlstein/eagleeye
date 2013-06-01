@@ -47,11 +47,12 @@ process_uncompressed_files()
 }
 
 
-rm -f *.csv
+rm -f *.csv *.png
 process_compressed_files
 process_uncompressed_files
 set -e
 for file in ./*.csv ; do
-    Rscript --no-save --slave plot_csv.R ${file%.csv}
+    base=`basename ${file%.csv}`
+    Rscript --no-save --slave plot_csv.R $file $base ${base}.png
 done
 set +e

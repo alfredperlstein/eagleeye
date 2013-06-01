@@ -31,16 +31,20 @@
 #
 #
 
+#ls(all = TRUE)
+#rm(list = ls(all = TRUE)) 
 
 myargs <- commandArgs(trailingOnly = TRUE)
-basename <- myargs[1]
+csvname <- myargs[1]
+basename <- myargs[2]
+pngname <- myargs[3]
 
 options(warn=1)
 
 
 #Import data 
 #Put this in a string, swap out the add variables for filenames and sysclt, done!
-sysctl_data <- read.table(paste(basename,"csv",sep="."), header=T, sep=",") 
+sysctl_data <- read.table(csvname, header=T, sep=",") 
 
 #Disable scentific notation 
 options("scipen"=100,"digits"=4) 
@@ -62,7 +66,7 @@ sysctl_data$"posixct" <- as.POSIXct(sysctl_data$"Date", format = "%Y-%m-%dT%H:%M
 plot_colors <- c("blue","red","forestgreen") 
 
 # Start PNG device driver to save output to figure.png 
-png(filename=paste(basename,"png",sep="."), height=495, width=900, bg="white") 
+png(filename=pngname, height=495, width=900, bg="white") 
 
 mar.default <- c(5,4,4,2) + 0.1
 par(mar = mar.default + c(0, 4, 0, 0))  #Save and set margin
