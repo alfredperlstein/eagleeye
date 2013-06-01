@@ -22,10 +22,12 @@ process_files()
 	fi
 	echo "Processing file ($curfile of $totfiles) $file..."
 	set -e
+	local prefix=`basename $file | sed 's/_[0-9]_sec.*//'`
+	prefix="${prefix}."
 	if [ -z "$FILTER" ] ; then
-	    $TRANSFORM -a -f $file
+	    $TRANSFORM -a -f $file --prefix $prefix
 	else
-	    $FILTER $file | $TRANSFORM -a
+	    $FILTER $file | $TRANSFORM -a --prefix $prefix
 	fi
 	set +e
 	echo "Completed $file..."
