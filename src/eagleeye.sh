@@ -31,6 +31,11 @@ ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 
 """
+
+#
+# daemon -f -p pidfile sh ./eagleeye.sh
+#
+
 # Author(s): Alfred Perlstein, Larry Maloney
 #
 # Notes: 
