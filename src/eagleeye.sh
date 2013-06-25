@@ -86,7 +86,7 @@ gothup()
 {
     end_children
     echo "Restarting on HUP..."
-    exec $0
+    exec sh $0
 }
 
 cleanup ()
