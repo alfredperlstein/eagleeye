@@ -288,8 +288,6 @@ prefix_date()
 
 netstat_all_ifaces $SLEEP_SEC
 nfsstat_cmd $SLEEP_SEC
-netstat -x -w 1 > netstat_x_1_second.txt &
-add_bg $!
 vmstat -p pass  -w 5 > vmstat_5_second.txt &
 add_bg $!
 echo "One time Statistics captured."
