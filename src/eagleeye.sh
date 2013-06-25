@@ -109,7 +109,7 @@ cleanup ()
     # Kill pid.
 
     $ISODATE > end_time.txt
-    cp /var/log/messages*  ./messages_end_of_test.txt
+    cp /var/log/messages  ./messages_end_of_test.txt
 
     end_children
 
