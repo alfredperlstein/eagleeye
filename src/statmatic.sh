@@ -234,7 +234,7 @@ prefix_date()
 }
 
 echo nfsstat -e -s -w 1 
-nfsstat -e -s -w 1 | grep --line-buffered -v 'GtAttr' | sed -l 's/ */|/g' | prefix_date > nfstat_server_1_second.txt &
+nfsstat -e -s -w 1 | grep --line-buffered -v 'GtAttr' | sed -l 's/ */|/g' | prefix_date > nfsstat_server_1_second.txt &
 add_bg $!
 netstat -x -w 1 > netstat_x_1_second.txt &
 add_bg $!
