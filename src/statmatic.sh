@@ -76,6 +76,19 @@ BGPIDS=""
 
 export ISODATE="date +%Y-%m-%dT%H:%M:%S"
 
+end_children()
+{
+
+    kill $BGPIDS
+}
+
+gothup()
+{
+    end_children
+    echo "Restarting on HUP..."
+    exec $0
+}
+
 cleanup ()
 {
     echo "Killing stuff monitoring processes"
@@ -93,12 +106,13 @@ cleanup ()
     $ISODATE > end_time.txt
     cp /var/log/messages*  ./messages_end_of_test.txt
 
-    kill $BGPIDS
+    end_children
 
     exit 0
 }
 
 trap cleanup SIGINT SIGTERM
+trap gothup SIGHUP
 
 zfs mount > /dev/null
 if [ $? -eq 0 ] ; then
