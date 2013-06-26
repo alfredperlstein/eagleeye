@@ -233,9 +233,7 @@ prefix_date()
     $UNBUFFER sh -c 'while read line ; do echo `$ISODATE`"$line" ;done' 
 }
 
-echo nfsstat -e -s -w 1 
-nfsstat -e -s -w 1 | grep --line-buffered -v 'GtAttr' | sed -l 's/ */|/g' | prefix_date > nfsstat_server_1_second.txt &
-add_bg $!
+nfsstat_cmd $SLEEP_SEC
 netstat -x -w 1 > netstat_x_1_second.txt &
 add_bg $!
 vmstat -p pass  -w 5 > vmstat_5_second.txt &
