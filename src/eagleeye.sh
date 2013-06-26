@@ -76,13 +76,21 @@ fi
 #: ${SYSCTL_NODES="vm nfs kern"}
 
 BGPIDS=""
+BGVERBOSE=""
 
 export ISODATE="date +%Y-%m-%dT%H:%M:%S"
 
 end_children()
 {
 
-    kill $BGPIDS
+    set -- $BGVERBOSE
+    while [ "x$1" != "x" ] ; do
+	pid=$1
+	proc=$2
+	shift;shift;
+	echo killing $proc
+	kill $pid
+    done
 }
 
 gothup()
@@ -144,6 +152,7 @@ arc_summary() {
 
 add_bg() {
     BGPIDS="$BGPIDS $1"
+    BGVERBOSE="$BGVERBOSE $1 $2"
     if [ "$VERBOSE" = "yes" ] ; then
 	echo "BGPIDS: $BGPIDS"
     fi
@@ -215,7 +224,7 @@ actstat_cmd()
 	$UNBUFFER sh -c 'while read arc_time arc_read  arc_miss  arc_miss_pct  arc_dmis  arc_dm_pct  arc_pmis  arc_pm_pct  arc_mmis  arc_mm_pct arc_sz arc_c ; do
 	echo `$ISODATE`"|arc_read: $arc_read|arc_miss: $arc_miss|arc_miss_pct: $arc_miss_pct|arc_dmis: $arc_dmis|arc_dm_pct: $arc_dm_pct|arc_pmis: $arc_pmis|arc_pm_pct: $arc_pm_pct|arc_mmis: $arc_mmis|arc_mm_pct: $arc_mm_pct|arc_sz: $arc_sz|arc_c: $arc_c|"
     done' > arcstat_${w}_second.txt &
-    add_bg $!
+    add_bg $! "arcstat_${w}_second.txt"
 }
 
 iostat_cmd()
@@ -225,7 +234,7 @@ iostat_cmd()
 	$UNBUFFER sh -c 'while read tin tout us ni sy in id ; do 
 	echo `$ISODATE`"|tin: $tin|tout: $tout|us: $us|ni: $ni|sy: $sy|in: $in|id: $id|" ;
     done' > iostat_${w}_second.txt &
-    add_bg $!
+    add_bg $! "iostat_${w}_second.txt"
 }
 
 #Added by larry to parse output just like iostat.  Need to test
@@ -236,17 +245,21 @@ nfsstat_cmd()
         $UNBUFFER sh -c 'while read GtAttr Lookup Rdlink Read  Write Rename Access  Rddir ; do
         echo `$ISODATE`"|GtAttr: $GtAttr|Lookup: $Lookup|RdLink: $Rdlink|Read: $Read|Write: $Write|Rename: $Rename|Rddir: $Rddir|" ;
     done' > nfsstat_${w}_second.txt &
-    add_bg $!
+    add_bg $! nfsstat_${w}_second.txt
 }
 
 actstat_cmd ${SLEEP_SEC}
 iostat_cmd ${SLEEP_SEC}
 
 if [ $ZFS_AVAILABLE -eq 1 ] ; then
-    zpool_wrap iostat -v $POOLNAME 1 > zpool_iostat_1_second.txt &
-    add_bg $!
-    zpool_wrap iostat -v $POOLNAME 60 > zpool_iostat_1_minute.txt &
-    add_bg $!
+    ZFS_POOLS=`zpool list -H   | awk '{print $1}'`
+    for zfs_pool in $ZFS_POOLS ; do
+	sanitized=`echo $zfs_pool | sed 's/[^a-zA-Z0-9]/_/g'`
+	zpool_wrap iostat -v "$zfs_pool" 1 > zpool_iostat_${sanitized}_1_second.txt &
+	add_bg $! zpool_iostat_${sanitized}_1_second
+	zpool_wrap iostat -v "$zfs_pool" 60 > zpool_iostat_${sanitized}_1_minute.txt &
+	add_bg $! zpool_iostat_${sanitized}_1_minute
+    done
 fi
 
 # remove the header columns, prefix with a date, format for CSV
@@ -268,7 +281,7 @@ netstat_iface()
 	sed -l 's/  */ /g' | \
 	$UNBUFFER sh -c 'while read ipackets ierrs idrops ibytes opackets oerrs obytes colls; do echo `$ISODATE`"|ipackets: $ipackets|ierrs: $ierrs|idrops: $idrops|ibytes: $ibytes|opackets: $opackets|oerrs: $oerrs|obytes: $obytes|colls: $colls|" ;done' \
     > netstat_${fname}_${sleeptime}_second.txt &
-    add_bg $!
+    add_bg $! netstat_${fname}_${sleeptime}_second.txt
 }
 
 netstat_all_ifaces() {
@@ -287,7 +300,7 @@ prefix_date()
 netstat_all_ifaces $SLEEP_SEC
 nfsstat_cmd $SLEEP_SEC
 vmstat -p pass  -w 5 > vmstat_5_second.txt &
-add_bg $!
+add_bg $! vmstat_5_second.txt
 echo "One time Statistics captured."
 
 
