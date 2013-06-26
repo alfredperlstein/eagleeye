@@ -95,7 +95,6 @@ cleanup ()
 
     kill $BGPIDS
 
-    echo "make sure you kill capture of arcsummary"
     exit 0
 }
 
