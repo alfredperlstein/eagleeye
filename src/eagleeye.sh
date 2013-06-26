@@ -88,7 +88,7 @@ end_children()
 	pid=$1
 	proc=$2
 	shift;shift;
-	echo killing $proc
+	echo killing $proc '->' $pid
 	kill $pid
     done
 }
