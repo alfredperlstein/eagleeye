@@ -219,8 +219,8 @@ nfsstat_cmd()
     add_bg $!
 }
 
-actstat_cmd 1
-iostat_cmd 1
+actstat_cmd ${SLEEP_SEC}
+iostat_cmd ${SLEEP_SEC}
 
 if [ $ZFS_AVAILABLE -eq 1 ] ; then
     zpool_wrap iostat -v $POOLNAME 1 > zpool_iostat_1_second.txt &
