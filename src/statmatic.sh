@@ -45,8 +45,12 @@ POSSIBILITY OF SUCH DAMAGE.
 # set TZ to UTC otherwise date(1) output is really bad to parse.
 export TZ=UTC
 
-# get all UP interfaces except lo|carp|pflog|pfsync
-INTERFACES=`ifconfig | grep UP | grep '^[a-z][a-z]*' | cut -f1 -d: | egrep -v '^(lo|carp|pflog|pfsync)' | paste -s -d " " - `
+set_interfaces() {
+    # get all UP interfaces except lo|carp|pflog|pfsync
+    INTERFACES=`ifconfig | grep UP | grep '^[a-z][a-z]*' | cut -f1 -d: | egrep -v '^(lo|carp|pflog|pfsync)' | paste -s -d " " - `
+}
+
+set_interfaces
 
 echo "Interfaces: $INTERFACES"
 
@@ -230,28 +234,41 @@ if [ $ZFS_AVAILABLE -eq 1 ] ; then
 fi
 
 # remove the header columns, prefix with a date, format for CSV
-netstat_iface() 
+netstat_iface()
 {
     sleeptime=$1
     iface=$2
-    echo "Running netstat_iface on $iface..."
-    netstat -I $iface $sleeptime | \
+    if [ "$iface" != "" ] ; then
+        echo "Running netstat_iface on $iface..."
+        iarg="-I $iface"
+        fname="$iface"
+    else
+        echo "Running netstat on all interfaces..."
+        iarg=""
+        fname="all"
+    fi
+    netstat $iarg $sleeptime | \
     egrep --line-buffered -v '^ *(input|packets)' | \
 	sed -l 's/  */ /g' | \
 	$UNBUFFER sh -c 'while read ipackets ierrs idrops ibytes opackets oerrs obytes colls; do echo `$ISODATE`"|ipackets: $ipackets|ierrs: $ierrs|idrops: $idrops|ibytes: $ibytes|opackets: $opackets|oerrs: $oerrs|obytes: $obytes|colls: $colls|" ;done' \
-    > netstat_${iface}_${sleeptime}_second.txt &
+    > netstat_${fname}_${sleeptime}_second.txt &
     add_bg $!
 }
 
-for iface in $INTERFACES ; do
-    netstat_iface $SLEEP_SEC $iface
-done
+netstat_all_ifaces() {
+    sleeptime=$1
+    for iface in $INTERFACES ; do
+        netstat_iface $sleeptime $iface
+    done
+    netstat_iface $sleeptime
+}
 
 prefix_date()
 {
     $UNBUFFER sh -c 'while read line ; do echo `$ISODATE`"$line" ;done' 
 }
 
+netstat_all_ifaces $SLEEP_SEC
 nfsstat_cmd $SLEEP_SEC
 netstat -x -w 1 > netstat_x_1_second.txt &
 add_bg $!
