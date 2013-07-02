@@ -303,7 +303,7 @@ echo "Interfaces: $INTERFACES"
 
 
 rm *.txt
-echo "$ISODATE" > start_time.txt
+$ISODATE > start_time.txt
 uname -v > uname.txt
 nfsstat > nfsstat_start.txt
 df > df.txt
