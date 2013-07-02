@@ -80,6 +80,29 @@ BGVERBOSE=""
 # this needs to be exported for subshells
 export ISODATE="date +%Y-%m-%dT%H:%M:%S"
 
+logwarn()
+{
+    echo "$1"
+    echo "$1" >> eagleeye.error.log
+}
+
+# let me know if I stand a chance of running a python
+# script, check for python in path and see if the script
+# exists.
+can_run_python_script()
+{
+    local script=$1
+
+    if [ "x" = "x`which python`" ] ; then
+	logwarn "python not available 'which python' = ''"
+    elif [ ! -e "$script" ] ; then
+        logwarn "$script not available."
+    else
+	return 0
+    fi
+    return 1
+}
+
 end_children()
 {
 
@@ -132,11 +155,10 @@ zpool_wrap() {
 
 
 arc_summary() {
-    script="/usr/local/www/freenasUI/tools/arc_summary.py"
-    if [ -e "$script" ] ; then
+    local script="/usr/local/www/freenasUI/tools/arc_summary.py"
+
+    if can_run_python_script "$script" ; then
         python "$script"
-    else
-        echo "$script not available."
     fi
 }
 
@@ -202,7 +224,7 @@ actstat_cmd()
     w=$1
     arcstat="/usr/local/www/freenasUI/tools/arcstat.py"
     # if there's no arcstat, then we're probably on a non-TrueNAS host, then just bail.
-    if [ ! -e "${arcstat}" ] ; then
+    if ! can_run_python_script "${arcstat}" ; then
 	return
     fi
     # XXX: some of the output of arcstat has "humanized numbers", can we easily graph
@@ -307,6 +329,8 @@ echo "Interfaces: $INTERFACES"
 
 rm *.txt
 $ISODATE > start_time.txt
+echo "=============" >> eagleeye.error.log
+$ISODATE >> eagleeye.error.log
 uname -v > uname.txt
 nfsstat > nfsstat_start.txt
 df > df.txt
