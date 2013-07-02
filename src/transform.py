@@ -320,7 +320,9 @@ def main():
        records.append(record)
        #print "Records: " + str(records)
        linecount += 1 # Increment
-       print " lines \r",linecount, 
+       if linecount % 128 == 0:
+	   print ("%d lines \r" % linecount),
+     print "%d lines" % linecount
      
      if f != sys.stdin:
          f.close()
