@@ -312,6 +312,7 @@ cp /data/freenas* .
 
 arc_summary > arc_summary_start_test.txt
 
+cp /etc/version ./
 dmesg > dmesg.txt
 cp /var/run/dmesg.boot ./dmesg.boot
 cp /var/log/messages*  ./
