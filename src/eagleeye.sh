@@ -53,10 +53,6 @@ set_interfaces() {
     INTERFACES=`ifconfig | grep UP | grep '^[a-z][a-z]*' | cut -f1 -d: | egrep -v '^(lo|carp|pflog|pfsync)' | paste -s -d " " - `
 }
 
-set_interfaces
-
-echo "Interfaces: $INTERFACES"
-
 stdbuf="/usr/bin/stdbuf"
 if [ -e "$stdbuf" ] ; then 
     export UNBUFFER="$stdbuf -o L"
@@ -78,6 +74,7 @@ fi
 BGPIDS=""
 BGVERBOSE=""
 
+# this needs to be exported for subshells
 export ISODATE="date +%Y-%m-%dT%H:%M:%S"
 
 end_children()
@@ -122,16 +119,6 @@ cleanup ()
     exit 0
 }
 
-trap cleanup SIGINT SIGTERM
-trap gothup SIGHUP
-
-zfs mount > /dev/null
-if [ $? -eq 0 ] ; then
-    ZFS_AVAILABLE=1
-else
-    ZFS_AVAILABLE=0
-fi
-
 zpool_wrap() {
     if [ $ZFS_AVAILABLE -eq 1 ] ; then
         zpool $*
@@ -158,58 +145,55 @@ add_bg() {
     fi
 }
 
+netstat_all_ifaces() {
+    sleeptime=$1
+    for iface in $INTERFACES ; do
+        netstat_iface $sleeptime $iface
+    done
+    netstat_iface $sleeptime
+}
 
-echo "You should execute this sript, while the working directory is on an NFS mount point to store the logging data."
-echo "Capturing data for: $1"
-echo "erasing prior data first"
-echo -n "Start time: ";$ISODATE
-echo "Poolname: $POOLNAME"
+prefix_date()
+{
+    $UNBUFFER sh -c 'while read line ; do echo `$ISODATE`"$line" ;done' 
+}
 
-# Command to mount logging dir for client and targets
-#----------------------------------------------------
-# Samba Example:
-# mntlogdir="mount_smbfs -I freenas.ixsystems.com -U guest //guest@freenas/sj-storage"
-# NFS:
-#echo "Setup Logging directory at $LOGDIR"
-#mkdir $LOGDIR
-#MNTLOGDIR="mount spec10.sjlab1.ixsystems.com:/usr/home/logdata $LOGDIR"
-#echo "We want to run: $MNTLOGDIR"
-#eval $MNTLOGDIR
-cd $LOGDIR
-echo
-echo
-if [ "$USE_HWPMC" = "yes" ] ; then
-    echo "Loading HWPMC..."
-    kldload hwpmc
-fi
-echo "========================Start===================="
-rm *.txt
-$ISODATE > start_time.txt
-uname -v > uname.txt
-nfsstat > nfsstat_start.txt
-df > df.txt
-zpool_wrap list > zpool_list_start.txt
-cp /data/freenas* .
+datestamp()
+{
+    echo "=== " `$ISODATE` " ==="
+    $*
+}
 
-arc_summary > arc_summary_start_test.txt
+join_filter()
+{
+    paste -s -d "|" -
 
-dmesg > dmesg.txt
-cp /var/run/dmesg.boot ./dmesg.boot
-cp /var/log/messages*  ./
-ifconfig > ifconfig.txt
-cp /boot/loader.conf  ./loader.conf.txt
-cat /boot/loader.conf.local > ./loader.conf.local.txt
-cp /etc/rc.conf ./rc.conf.txt
-cp /etc/sysctl.conf ./sysctl.conf.txt
-sysctl -a > sysctl_all.txt
-sysctl vfs.nfs > sysctl_nfs.txt
-sysctl vfs.nfsd >> sysctl_nfs.txt
-sysctl vfs.zfs > sysctl_zfs.txt
-mount > mount.txt
-cat /etc/exports > ./exports.txt
-gmultipath status > gmulitpathstatus.txt
-zpool_wrap status > zpool_status.txt
+}
 
+# grab all the numeric values from sysctl ONLY and make it into a csv-like
+# format
+sysctl_filter()
+{
+    egrep '^[a-z][a-z.0-9]+: [0-9]+$' |join_filter
+
+}
+
+vmstat_i_filter()
+{
+    awk '{printf "%s",$1 ; for(i=2;i<NF-1;i++){printf " %s",$(i)} ; printf ",%s,%s|",$(NF-1),$(NF)}'
+}
+
+to_csv()
+{
+    filter=$1
+    shift
+    echo -n `$ISODATE`'|'
+    eval $* | $filter
+}
+
+#####################################
+# Begin: background subshells
+#####################################
 actstat_cmd()
 {
     w=$1
@@ -248,20 +232,6 @@ nfsstat_cmd()
     add_bg $! nfsstat_${w}_second.txt
 }
 
-actstat_cmd ${SLEEP_SEC}
-iostat_cmd ${SLEEP_SEC}
-
-if [ $ZFS_AVAILABLE -eq 1 ] ; then
-    ZFS_POOLS=`zpool list -H   | awk '{print $1}'`
-    for zfs_pool in $ZFS_POOLS ; do
-	sanitized=`echo $zfs_pool | sed 's/[^a-zA-Z0-9]/_/g'`
-	zpool_wrap iostat -v "$zfs_pool" 1 > zpool_iostat_${sanitized}_1_second.txt &
-	add_bg $! zpool_iostat_${sanitized}_1_second
-	zpool_wrap iostat -v "$zfs_pool" 60 > zpool_iostat_${sanitized}_1_minute.txt &
-	add_bg $! zpool_iostat_${sanitized}_1_minute
-    done
-fi
-
 # remove the header columns, prefix with a date, format for CSV
 netstat_iface()
 {
@@ -283,19 +253,95 @@ netstat_iface()
     > netstat_${fname}_${sleeptime}_second.txt &
     add_bg $! netstat_${fname}_${sleeptime}_second.txt
 }
+#####################################
+# End: background subshells
+#####################################
 
-netstat_all_ifaces() {
-    sleeptime=$1
-    for iface in $INTERFACES ; do
-        netstat_iface $sleeptime $iface
+#####################################
+# Begin: Main
+#####################################
+
+# Exit gracefully on signal, kill child subshells.
+trap cleanup SIGINT SIGTERM
+# HUP -> restart
+trap gothup SIGHUP
+
+# Deal with no ZFS mounts gracefully.
+zfs mount > /dev/null
+if [ $? -eq 0 ] ; then
+    ZFS_AVAILABLE=1
+else
+    ZFS_AVAILABLE=0
+fi
+
+echo -n "Start time: ";$ISODATE
+echo "Poolname: $POOLNAME"
+
+# Command to mount logging dir for client and targets
+#----------------------------------------------------
+# Samba Example:
+# mntlogdir="mount_smbfs -I freenas.ixsystems.com -U guest //guest@freenas/sj-storage"
+# NFS:
+#echo "Setup Logging directory at $LOGDIR"
+#mkdir $LOGDIR
+#MNTLOGDIR="mount spec10.sjlab1.ixsystems.com:/usr/home/logdata $LOGDIR"
+#echo "We want to run: $MNTLOGDIR"
+#eval $MNTLOGDIR
+
+cd $LOGDIR
+echo
+echo
+if [ "$USE_HWPMC" = "yes" ] ; then
+    echo "Loading HWPMC..."
+    kldload hwpmc
+fi
+
+echo "========================Start===================="
+
+set_interfaces
+echo "Interfaces: $INTERFACES"
+
+
+rm *.txt
+echo "$ISODATE" > start_time.txt
+uname -v > uname.txt
+nfsstat > nfsstat_start.txt
+df > df.txt
+zpool_wrap list > zpool_list_start.txt
+cp /data/freenas* .
+
+arc_summary > arc_summary_start_test.txt
+
+dmesg > dmesg.txt
+cp /var/run/dmesg.boot ./dmesg.boot
+cp /var/log/messages*  ./
+ifconfig > ifconfig.txt
+cp /boot/loader.conf  ./loader.conf.txt
+cat /boot/loader.conf.local > ./loader.conf.local.txt
+cp /etc/rc.conf ./rc.conf.txt
+cp /etc/sysctl.conf ./sysctl.conf.txt
+sysctl -a > sysctl_all.txt
+sysctl vfs.nfs > sysctl_nfs.txt
+sysctl vfs.nfsd >> sysctl_nfs.txt
+sysctl vfs.zfs > sysctl_zfs.txt
+mount > mount.txt
+cat /etc/exports > ./exports.txt
+gmultipath status > gmulitpathstatus.txt
+zpool_wrap status > zpool_status.txt
+
+actstat_cmd ${SLEEP_SEC}
+iostat_cmd ${SLEEP_SEC}
+
+if [ $ZFS_AVAILABLE -eq 1 ] ; then
+    ZFS_POOLS=`zpool list -H   | awk '{print $1}'`
+    for zfs_pool in $ZFS_POOLS ; do
+	sanitized=`echo $zfs_pool | sed 's/[^a-zA-Z0-9]/_/g'`
+	zpool_wrap iostat -v "$zfs_pool" 1 > zpool_iostat_${sanitized}_1_second.txt &
+	add_bg $! zpool_iostat_${sanitized}_1_second
+	zpool_wrap iostat -v "$zfs_pool" 60 > zpool_iostat_${sanitized}_1_minute.txt &
+	add_bg $! zpool_iostat_${sanitized}_1_minute
     done
-    netstat_iface $sleeptime
-}
-
-prefix_date()
-{
-    $UNBUFFER sh -c 'while read line ; do echo `$ISODATE`"$line" ;done' 
-}
+fi
 
 netstat_all_ifaces $SLEEP_SEC
 nfsstat_cmd $SLEEP_SEC
@@ -303,39 +349,6 @@ vmstat -p pass  -w 5 > vmstat_5_second.txt &
 add_bg $! vmstat_5_second.txt
 echo "One time Statistics captured."
 
-
-datestamp()
-{
-    echo "=== " `$ISODATE` " ==="
-    $*
-}
-
-join_filter()
-{
-    paste -s -d "|" -
-
-}
-
-# grab all the numeric values from sysctl ONLY and make it into a csv-like
-# format
-sysctl_filter()
-{
-    egrep '^[a-z][a-z.0-9]+: [0-9]+$' |join_filter
-
-}
-
-vmstat_i_filter()
-{
-    awk '{printf "%s",$1 ; for(i=2;i<NF-1;i++){printf " %s",$(i)} ; printf ",%s,%s|",$(NF-1),$(NF)}'
-}
-
-to_csv()
-{
-    filter=$1
-    shift
-    echo -n `$ISODATE`'|'
-    eval $* | $filter
-}
 
 while [ 1 ]
 do
