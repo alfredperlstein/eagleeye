@@ -48,6 +48,9 @@
 # set TZ to UTC otherwise date(1) output is really bad to parse.
 export TZ=UTC
 
+# add /usr/local/bin for python and other needed tools
+export PATH=$PATH:/usr/local/bin:/usr/local/sbin
+
 set_interfaces() {
     # get all UP interfaces except lo|carp|pflog|pfsync
     INTERFACES=`ifconfig | grep UP | grep '^[a-z][a-z]*' | cut -f1 -d: | egrep -v '^(lo|carp|pflog|pfsync)' | paste -s -d " " - `
