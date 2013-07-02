@@ -1,8 +1,10 @@
 #!/bin/sh
 
+mydir=`dirname $0`
 #TRANSFORM_ARGS=" --fixup-date"
-TRANSFORM="python transform.py $TRANSFORM_ARGS"
+TRANSFORM="python ${mydir}/transform.py $TRANSFORM_ARGS"
 # Process compressed the newsyslog files.
+
 
 set -x
 
@@ -55,12 +57,12 @@ process_uncompressed_files
 set -e
 for file in ./*.csv ; do
     base=`basename ${file%.csv}`
-    Rscript --no-save --slave plot_csv.R $file $base ${base}.png
+    Rscript --no-save --slave ${mydir}/plot_csv.R $file $base ${base}.png
 done
 set +e
 
 # make html
-python genindex.py
+python ${mydir}/genindex.py
 
 # copy to staging directory
-sh stage.sh stage
+sh ${mydir}/stage.sh stage
