@@ -57,8 +57,8 @@ process_uncompressed_files
 set -e
 for file in ./*.csv ; do
     base=`basename ${file%.csv}`
-    if [ ! -s "$base" ] ; then
-	echo "Warning file $base has zero length skipping"
+    if [ `head -2 $file | wc -l ` -le 1 ] ; then
+	echo "Warning file $file has no data, skipping it."
 	continue
     fi
     Rscript --no-save --slave ${mydir}/plot_csv.R $file $base ${base}.png
