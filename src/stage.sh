@@ -12,5 +12,5 @@ mkdir -p $dir
 
 cp -v index.html large.html $dir
 cp -v *.png $dir
-cp -v "${mydir}"/*.{js,css} $dir
-
+cp -v "${mydir}"/*.js $dir
+cp -v "${mydir}"/*.css $dir
